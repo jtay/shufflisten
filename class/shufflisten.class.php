@@ -7,10 +7,6 @@
 			require '../vendor/autoload.php';
 			require '../config.php';
 
-			if(!headers_sent()){
-				session_start();
-			}
-
 			$this->user = new SpotifyWebAPI\Session(
 				SPOTIFY_ACCESS_TOKEN,
 				SPOTIFY_SECRET_TOKEN,
