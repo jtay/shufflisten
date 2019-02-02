@@ -26,7 +26,7 @@
 
 	$pl = $_GET['playlist'];
 
-	$allTracks = [];
+	$all_tracks = [];
 
 	$limit = 50;
 
@@ -36,10 +36,11 @@
 
 	$total = $tracks['total'];
 
-	$allTracks = $allTracks + $tracks['items'];
+	$all_tracks = $tracks['items'];
+
+	$json_tracks = [];
 
 	if($limit - $total < 0){
-		echo 'catch1';
 		$loops_needed = ceil($total / $limit);
 		for($i = 1; $i < $loops_needed; $i++){
 			$options = [
@@ -47,13 +48,12 @@
 				'limit' => $limit
 			];
 			$more_tracks = json_decode(json_encode($sl->api->getPlaylistTracks($pl_id, $options)), true);
-			// print_r($moreTracks);
-			$allTracks = array_merge($allTracks, $more_tracks['items']);
+			$all_tracks = array_merge($all_tracks, $more_tracks['items']);
 		}	
 
 	 }
 	 echo '<ul>';
-	 foreach($allTracks as $k => $x){
+	 foreach($all_tracks as $k => $x){
 	 	//print_r($x);
 	 	echo '
 	 		<li>
@@ -62,6 +62,15 @@
 	 	';
 	 }
 	 echo '</ul>';
+
+	 foreach($all_tracks as $k => $x){
+	 	$json_tracks[strval($k + 1)]['track_name'] = $x['track']['artists'][0]['name'] . ' - ' . $x['track']['name'];
+	 	$json_tracks[strval($k + 1)]['track_length'] = strval($x['track']['duration_ms']);
+	 	$json_tracks[strval($k + 1)]['track_url'] = $x['track']['external_urls']['spotify'];
+	 	$json_tracks[strval($k + 1)]['track_spotify_id'] = $x['track']['id'];
+	 	//$json_tracks[strval($k + 1)]['track_image_url'] = $x['track']['album']['images'][0]['url'];
+	 }
+
 	 ?>
 
 	 <h1 class="ui image header">
@@ -87,23 +96,62 @@
 	 <div class="ui bottom attached segment">
 	 	<div class="ui stackable grid">
 	 		<div class="four wide column">
-	 			<div class="ui fluid green button">
+	 			<div class="ui fluid green button" data-jq-id="shuffleButton">
 	 				<i class="refresh icon"></i> Shuffle!
 	 			</div>
 	 		</div>
-	 		<div class="four wide column">
+	 		<div class="four wide column" data-jq-id="playButton">
 	 			<div class="ui fluid blue button">
 	 				<i class="play icon"></i> Play!
 	 			</div>
 	 		</div>
-	 		<div class="four wide column">
+	 		<div class="four wide column" data-jq-id="stopButton">
 	 			<div class="ui fluid red button">
 	 				<i class="stop icon"></i> Stop!
 	 			</div>
 	 		</div>	
 	 		<div class="four wide column">
-	 			
+	 				<div class="ui fluid selection dropdown" data-jq-id="deviceDropdown">
+
+	 				</div>
+	 				<div class="ui circular icon green button" data-jq-id="deviceRefresh">
+	 					<i class="refresh icon"></i>
+	 				</div>
 	 		</div>	 		 			 		
 	 	</div>
 	 </div>
+
+	 <script>
+	 	$(document).ready(function(){
+
+	 		var 
+	 			$shuffleBtn = $('[data-jq-id=shuffleButton]'),
+	 			$playBtn = $('[data-jq-id=playButton]'),
+	 			$stopBtn = $('[data-jq-id=stopButton]'),
+	 			$deviceDropdown = $('[data-jq-id=deviceDropdown]'),
+	 			$refreshBtn = $('[data-jq-id=deviceRefresh]'),
+	 			tracks = `<?= json_encode($json_tracks); ?>`
+	 		;
+
+	 		// tracks = tracks.replace(/\\n/g, "\\n")  
+    //            .replace(/\\'/g, "\\'")
+    //            .replace(/\\"/g, '\\"')
+    //            .replace(/\\&/g, "\\&")
+    //            .replace(/\\r/g, "\\r")
+    //            .replace(/\\t/g, "\\t")
+    //            .replace(/\\b/g, "\\b")
+    //            .replace(/\\f/g, "\\f");
+				// // remove non-printable and other non-valid JSON chars
+				// tracks = tracks.replace(/[\u0000-\u0019]+/g,"");
+
+				// tracks = JSON.parse(tracks);
+
+				console.log(tracks);
+
+	 			// for (var i = tracks.length - 1; i >= 0; i--) {
+	 			// 	console.log(tracks[i]['track_name'])
+	 			// }
+	 		;
+	 	});
+	 </script>
 	
