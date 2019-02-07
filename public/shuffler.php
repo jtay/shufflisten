@@ -36,6 +36,24 @@
 
 	$total = $tracks['total'];
 
+	if($total < 1){
+		die('
+			<h1 class="ui center aligned icon header">
+				<i class="warning icon"></i>
+				<div class="content">
+					Whoops!
+					<div class="sub header">
+						This playlist is empty!
+						<br><br>
+						<a href="/" class="ui green button">
+							Home
+						</a>
+					</div>
+				</div>
+			</h1>
+			');		
+	}
+
 	$all_tracks = $tracks['items'];
 
 	$json_tracks = [];
@@ -52,23 +70,12 @@
 		}	
 
 	 }
-	 echo '<ul>';
-	 foreach($all_tracks as $k => $x){
-	 	//print_r($x);
-	 	echo '
-	 		<li>
-	 			<strong>' . (intval($k) + 1) . '</strong> - ' . $x['track']['artists'][0]['name'] . ' - ' . $x['track']['name'] . '
-	 		</li>
-	 	';
-	 }
-	 echo '</ul>';
 
 	 foreach($all_tracks as $k => $x){
 	 	$json_tracks[strval($k + 1)]['track_name'] = $x['track']['artists'][0]['name'] . ' - ' . $x['track']['name'];
 	 	$json_tracks[strval($k + 1)]['track_length'] = strval($x['track']['duration_ms']);
 	 	$json_tracks[strval($k + 1)]['track_url'] = $x['track']['external_urls']['spotify'];
 	 	$json_tracks[strval($k + 1)]['track_spotify_id'] = $x['track']['id'];
-	 	//$json_tracks[strval($k + 1)]['track_image_url'] = $x['track']['album']['images'][0]['url'];
 	 }
 
 	 ?>
@@ -81,10 +88,10 @@
 		 	</a>
 		 	<div class="sub header" style="margin-left: 0;">
 				<a class="ui green label" href="<?= $playlist['owner']['external_urls']['spotify']; ?>">
-					<i class="user icon"></i>&nbsp;&nbsp;<?= $playlist['owner']['display_name']; ?>
+					<i class="user icon"></i><?= $playlist['owner']['display_name']; ?>
 				</a>
 				<span class="ui blue label">
-					<i class="hashtag icon"></i>&nbsp;&nbsp;<?= number_format($playlist['tracks']['total']); ?> tracks
+					<i class="hashtag icon"></i><?= number_format($playlist['tracks']['total']); ?> tracks
 				</span>			 		
 		 	</div>
 		 </span>
@@ -95,62 +102,78 @@
 	 </h3>
 	 <div class="ui bottom attached segment">
 	 	<div class="ui stackable grid">
-	 		<div class="four wide column">
-	 			<div class="ui fluid green button" data-jq-id="shuffleButton">
-	 				<i class="refresh icon"></i> Shuffle!
+	 		<div class="three wide column">
+	 			<div class="ui fluid blue button" data-jq-id="shuffleButton">
+	 				<i class="refresh icon"></i> Shuffle
 	 			</div>
 	 		</div>
-	 		<div class="four wide column" data-jq-id="playButton">
-	 			<div class="ui fluid blue button">
-	 				<i class="play icon"></i> Play!
-	 			</div>
-	 		</div>
-	 		<div class="four wide column" data-jq-id="stopButton">
+	 		<div class="three wide column" data-jq-id="previousButton">
 	 			<div class="ui fluid red button">
-	 				<i class="stop icon"></i> Stop!
+	 				<i class="backward icon"></i> Previous
+	 			</div>
+	 		</div>	 		
+	 		<div class="three wide column" data-jq-id="playButton">
+	 			<div class="ui fluid green button">
+	 				<i class="play icon"></i> Play
+	 			</div>
+	 		</div>
+	 		<div class="three wide column" data-jq-id="nextButton">
+	 			<div class="ui fluid red button">
+	 				<i class="forward icon"></i> Next
 	 			</div>
 	 		</div>	
 	 		<div class="four wide column">
-	 				<div class="ui fluid selection dropdown" data-jq-id="deviceDropdown">
-
+	 				<div class="ui selection dropdown" data-jq-id="deviceDropdown">
+	 					<input type="hidden" name="deviceDropdown">
+	 					<i class="dropdown icon"></i>
+	 					<div class="default text">
+	 						Shufflisten
+	 					</div>
+	 					<div class="menu" data-jq-id="deviceDropdownMenu">
+	 						<div class="item" data-value="SL">
+	 							Shufflisten
+	 						</div>
+	 					</div>
 	 				</div>
-	 				<div class="ui circular icon green button" data-jq-id="deviceRefresh">
-	 					<i class="refresh icon"></i>
+	 				<div class="ui circular icon green label" data-jq-id="deviceRefresh" style="cursor: pointer;">
+	 					<i class="fitted refresh icon"></i>
 	 				</div>
 	 		</div>	 		 			 		
 	 	</div>
 	 </div>
 
 	 <script>
+ 		var 
+ 			$shuffleBtn = $('[data-jq-id=shuffleButton]'),
+ 			$playBtn = $('[data-jq-id=playButton]'),
+ 			$previousBtn = $('[data-jq-id=previousButton]'),
+ 			$nextBtn = $('[data-jq-id=nextButton]'),
+ 			$deviceDropdown = $('[data-jq-id=deviceDropdown]'),
+ 			$refreshBtn = $('[data-jq-id=deviceRefresh]'),
+ 			tracks = `<?= json_encode($json_tracks); ?>`
+ 		;	 	
 	 	$(document).ready(function(){
 
-	 		var 
-	 			$shuffleBtn = $('[data-jq-id=shuffleButton]'),
-	 			$playBtn = $('[data-jq-id=playButton]'),
-	 			$stopBtn = $('[data-jq-id=stopButton]'),
-	 			$deviceDropdown = $('[data-jq-id=deviceDropdown]'),
-	 			$refreshBtn = $('[data-jq-id=deviceRefresh]'),
-	 			tracks = `<?= json_encode($json_tracks); ?>`
-	 		;
+	 		$deviceDropdown.dropdown();
 
-	 		// tracks = tracks.replace(/\\n/g, "\\n")  
-    //            .replace(/\\'/g, "\\'")
-    //            .replace(/\\"/g, '\\"')
-    //            .replace(/\\&/g, "\\&")
-    //            .replace(/\\r/g, "\\r")
-    //            .replace(/\\t/g, "\\t")
-    //            .replace(/\\b/g, "\\b")
-    //            .replace(/\\f/g, "\\f");
-				// // remove non-printable and other non-valid JSON chars
-				// tracks = tracks.replace(/[\u0000-\u0019]+/g,"");
+	 		tracks = tracks.replace(/\\n/g, "\\n")  
+               .replace(/\\'/g, "\\'")
+               .replace(/\\"/g, '\\"')
+               .replace(/\\&/g, "\\&")
+               .replace(/\\r/g, "\\r")
+               .replace(/\\t/g, "\\t")
+               .replace(/\\b/g, "\\b")
+               .replace(/\\f/g, "\\f");
+				// remove non-printable and other non-valid JSON chars
+				tracks = tracks.replace(/[\u0000-\u0019]+/g,"");
 
-				// tracks = JSON.parse(tracks);
+				tracks = JSON.parse(tracks);
 
-				console.log(tracks);
+				//console.log(tracks);
 
-	 			// for (var i = tracks.length - 1; i >= 0; i--) {
-	 			// 	console.log(tracks[i]['track_name'])
-	 			// }
+				for (var i = 0; i < tracks.length; i++) {
+					console.log(tracks[i]['track_name'])
+				}
 	 		;
 	 	});
 	 </script>

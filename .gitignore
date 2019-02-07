@@ -1,5 +1,6 @@
 config.php
 storage/*
+public/p.php
 
 # Composer
 composer.phar

@@ -4,8 +4,8 @@
 
 		public function __construct(){
 
-			require '../vendor/autoload.php';
-			require '../config.php';
+			require $_SERVER['DOCUMENT_ROOT'] . '/../vendor/autoload.php';
+			require $_SERVER['DOCUMENT_ROOT'] . '/../config.php';
 
 			$this->user = new SpotifyWebAPI\Session(
 				SPOTIFY_ACCESS_TOKEN,
@@ -28,7 +28,9 @@
 			$options = [
 				'scope' => [
 	                'user-read-email',
-	                'playlist-read-private'
+	                'playlist-read-private',
+	                'user-read-playback-state',
+	                'user-modify-playback-state'
             	]
 			];
 
