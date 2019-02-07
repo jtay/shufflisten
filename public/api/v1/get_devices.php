@@ -44,7 +44,7 @@
 			case 'GameConsole':
 				$out['device_type'] = 'gamepad';
 				break;				
-			case 'automobile':
+			case 'Automobile':
 				$out['device_type'] = 'car';
 				break;				
 			default:

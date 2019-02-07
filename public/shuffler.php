@@ -74,12 +74,16 @@
 	 foreach($all_tracks as $k => $x){
 	 	$json_tracks[strval($k + 1)]['track_name'] = $x['track']['artists'][0]['name'] . ' - ' . $x['track']['name'];
 	 	$json_tracks[strval($k + 1)]['track_length'] = strval($x['track']['duration_ms']);
-	 	$json_tracks[strval($k + 1)]['track_url'] = $x['track']['external_urls']['spotify'];
+	 	if(!isset($x['track']['external_urls']['spotify'])){
+	 		$json_tracks[strval($k + 1)]['track_url'] = 'https://spotify.com';
+	 	}else{
+			$json_tracks[strval($k + 1)]['track_url'] = $x['track']['external_urls']['spotify'];
+	 	}
+	 	
 	 	$json_tracks[strval($k + 1)]['track_spotify_id'] = $x['track']['id'];
 	 }
 
 	 ?>
-
 	 <h1 class="ui image header">
 	 	<img src="<?= $playlist['images'][0]['url']; ?>" class="ui avatar image">
 	 	<div class="content">
@@ -127,12 +131,9 @@
 	 					<input type="hidden" name="deviceDropdown">
 	 					<i class="dropdown icon"></i>
 	 					<div class="default text">
-	 						Shufflisten
+	 						Choose a Device
 	 					</div>
 	 					<div class="menu" data-jq-id="deviceDropdownMenu">
-	 						<div class="item" data-value="SL">
-	 							Shufflisten
-	 						</div>
 	 					</div>
 	 				</div>
 	 				<div class="ui circular icon green label" data-jq-id="deviceRefresh" style="cursor: pointer;">
@@ -149,12 +150,51 @@
  			$previousBtn = $('[data-jq-id=previousButton]'),
  			$nextBtn = $('[data-jq-id=nextButton]'),
  			$deviceDropdown = $('[data-jq-id=deviceDropdown]'),
+ 			$deviceDropdownMenu = $('[data-jq-id=deviceDropdownMenu]'),
  			$refreshBtn = $('[data-jq-id=deviceRefresh]'),
- 			tracks = `<?= json_encode($json_tracks); ?>`
- 		;	 	
+ 			tracks = `<?= json_encode($json_tracks); ?>`,
+ 			selectedDevice,
+ 			playlistID = "<?= $pl_id; ?>"
+ 		;	
+
+ 		function checkDevices(){
+ 			$.getJSON('/api/v1/get_devices.php', function(data){
+ 				toastr.success(data['message']);
+ 				$deviceDropdownMenu.html('');
+ 				for (var i = data['data']['devices'].length - 1; i >= 0; i--) {
+ 					item = `
+ 						<div class="item" data-value="` + data['data']['devices'][i]['device_id'] + `">
+ 							<i class="` + data['data']['devices'][i]['device_type'] + ` icon"></i>` + data['data']['devices'][i]['device_name'] + `
+ 						</div>
+ 					`;
+ 					$deviceDropdownMenu.append($(item));
+ 					console.log(data['data']['devices'][i]);
+ 				}
+ 			})
+ 		}
+
+ 		function shuffle(){
+ 			$.getJSON('/api/v1/shuffle.php?playlist=' + playlistID, function(data){
+ 				if(data['success'] == true){
+
+ 				}else{
+ 					toastr.error(data['message']);
+ 				}
+ 			})
+ 		}
+
 	 	$(document).ready(function(){
 
-	 		$deviceDropdown.dropdown();
+	 		$deviceDropdown.dropdown({
+	 			onChange : function(value, text, $dom){
+	 				selectedDevice = value;
+	 				console.log(value, text, $dom);
+	 			}
+	 		});
+
+	 		$refreshBtn.on('click touchstart', function(){
+	 			checkDevices();
+	 		})
 
 	 		tracks = tracks.replace(/\\n/g, "\\n")  
                .replace(/\\'/g, "\\'")
